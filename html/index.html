@@ -1,0 +1,61 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тетрис</title>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+    <div class="grid">
+        <div class="game-container">
+            <canvas id="board"></canvas>
+            <button class="settings-button" onclick="openSettings()">⚙️</button>
+            <div id="game-over" class="game-over">ИГРА ЗАВЕРШЕНА</div>
+        </div>
+        <div class="right-column">
+            <div>
+                <h1>ТЕТРИС</h1>
+                <p>Счет: <span id="score">0</span></p>
+                <p>Линии: <span id="lines">0</span></p>
+                <p>Уровень: <span id="level">1</span></p>
+                <p>Рекорд: <span id="highscore">0</span></p>
+            </div>
+            <div class="buttons">
+                <button class="play-button" onclick="play()">Играть</button>
+                <button class="pause-button" onclick="togglePause()" disabled>Пауза</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h2>Настройки</h2>
+            <div class="settings-section">
+                <h3>Цветовая схема</h3>
+                <select id="color-scheme">
+                    <option value="classic">Классическая</option>
+                    <option value="pastel">Пастельная</option>
+                    <option value="neon">Неоновая</option>
+                </select>
+            </div>
+            <div class="settings-section">
+                <h3>Фон</h3>
+                <select id="background">
+                    <!-- Опции будут добавлены динамически -->
+                </select>
+            </div>
+            <div class="settings-section">
+                <h3>Цвет фона</h3>
+                <input type="color" id="background-color" value="#202028">
+            </div>
+            <button class="save-button" onclick="saveSettings()">Сохранить</button>
+            <button class="close-button" onclick="closeSettings()">✕</button>
+        </div>
+    </div>
+
+    <script src="constants.js"></script>
+    <script src="main.js"></script>
+</body>
+</html> 
