@@ -1,0 +1,182 @@
+* {
+    font-family: 'Press Start 2P', cursive;
+}
+
+body {
+    background: #202028;
+    color: #fff;
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    overflow: hidden;
+    background-size: cover;
+    background-position: center;
+}
+
+.grid {
+    display: grid;
+    grid-template-columns: 480px 200px;
+    gap: 50px;
+    padding: 30px;
+    border-radius: 10px;
+    margin: 0 auto;
+    width: fit-content;
+    background: rgba(0, 0, 0, 0.7);
+    backdrop-filter: blur(5px);
+}
+
+.game-container {
+    position: relative;
+}
+
+.right-column {
+    display: flex;
+    flex-direction: column;
+    justify-content: space-between;
+}
+
+canvas {
+    border: 2px solid #fff;
+    background: rgba(0, 0, 0, 0.5);
+}
+
+.buttons {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+}
+
+.play-button, .pause-button, .settings-button {
+    background-color: #4caf50;
+    font-size: 16px;
+    padding: 15px 30px;
+    cursor: pointer;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    transition: background-color 0.3s;
+}
+
+.pause-button {
+    background-color: #f0a000;
+}
+
+.settings-button {
+    background-color: #666;
+    font-size: 20px;
+    padding: 10px;
+}
+
+.play-button:hover {
+    background-color: #45a049;
+}
+
+.pause-button:hover {
+    background-color: #d89000;
+}
+
+.settings-button:hover {
+    background-color: #777;
+}
+
+.pause-button:disabled, .settings-button:disabled {
+    background-color: #666;
+    cursor: not-allowed;
+}
+
+.game-over {
+    display: none;
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: white;
+    padding: 20px 40px;
+    border-radius: 10px;
+    font-size: 24px;
+    text-align: center;
+    z-index: 100;
+}
+
+.modal {
+    display: none;
+    position: fixed;
+    top: 0;
+    left: 0;
+    width: 100%;
+    height: 100%;
+    background-color: rgba(0, 0, 0, 0.7);
+    z-index: 1000;
+}
+
+.modal-content {
+    position: relative;
+    background-color: #202028;
+    margin: 15% auto;
+    padding: 20px;
+    width: 80%;
+    max-width: 500px;
+    border-radius: 10px;
+    color: white;
+    border: 2px solid #666;
+}
+
+.settings-section {
+    margin: 20px 0;
+}
+
+.settings-section h3 {
+    margin-bottom: 10px;
+    color: #4caf50;
+}
+
+.settings-section select,
+.settings-section input {
+    width: 100%;
+    padding: 8px;
+    margin-top: 5px;
+    background: #333;
+    color: white;
+    border: 1px solid #666;
+    border-radius: 5px;
+}
+
+.close-button {
+    position: absolute;
+    right: 10px;
+    top: 10px;
+    background: none;
+    border: none;
+    color: white;
+    font-size: 24px;
+    cursor: pointer;
+    padding: 5px 10px;
+}
+
+.save-button {
+    background-color: #4caf50;
+    padding: 10px 20px;
+    border: none;
+    color: white;
+    cursor: pointer;
+    margin-top: 20px;
+    border-radius: 5px;
+    width: 100%;
+    font-family: 'Press Start 2P', cursive;
+}
+
+.save-button:hover {
+    background-color: #45a049;
+}
+
+h1 {
+    font-size: 24px;
+    margin-bottom: 30px;
+}
+
+p {
+    margin: 5px 0;
+} 

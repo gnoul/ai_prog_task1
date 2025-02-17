@@ -1,0 +1,74 @@
+<div class="buttons">
+    <button class="play-button" id="play-button">Играть</button>
+    <button class="pause-button" id="pause-button" disabled>Пауза</button>
+    <button class="settings-button" id="settings-button">⚙</button>
+</div>
+
+<!-- ... остальной HTML код ... -->
+
+<script type="module">
+    import init, { Game } from './pkg/tetris.js';
+
+    let game;
+    let animationId;
+
+    // ... существующий код ...
+
+    async function run() {
+        try {
+            console.log("Initializing WebAssembly...");
+            await init();
+            console.log("WebAssembly initialized");
+
+            game = new Game();
+            console.log("Game created");
+            game.draw();
+
+            const playButton = document.getElementById('play-button');
+            const pauseButton = document.getElementById('pause-button');
+            const settingsButton = document.getElementById('settings-button');
+            const settingsModal = document.getElementById('settings-modal');
+            const backgroundSelect = document.getElementById('background');
+
+            // Заполняем список фонов
+            const backgrounds = game.get_backgrounds();
+            backgrounds.forEach((bg, index) => {
+                const option = document.createElement('option');
+                option.value = bg;
+                option.textContent = `Фон ${index + 1}`;
+                backgroundSelect.appendChild(option);
+            });
+
+            // Обработчики для окна настроек
+            settingsButton.addEventListener('click', () => {
+                settingsModal.style.display = 'block';
+            });
+
+            document.querySelector('.close-button').addEventListener('click', () => {
+                settingsModal.style.display = 'none';
+            });
+
+            document.querySelector('.save-button').addEventListener('click', () => {
+                const colorScheme = document.getElementById('color-scheme').value;
+                const backgroundColor = document.getElementById('background-color').value;
+                const background = document.getElementById('background').value;
+
+                try {
+                    game.set_color_scheme(colorScheme);
+                    game.set_background_color(backgroundColor);
+                    game.set_background(background);
+                } catch (e) {
+                    console.error("Error saving settings:", e);
+                }
+
+                settingsModal.style.display = 'none';
+            });
+
+            // ... остальной существующий код ...
+        } catch (e) {
+            console.error("Error initializing game:", e);
+        }
+    }
+
+    run().catch(console.error);
+</script> 

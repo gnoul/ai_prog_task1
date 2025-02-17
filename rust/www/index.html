@@ -1,0 +1,183 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тетрис WASM</title>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <link rel="stylesheet" href="style.css">
+</head>
+<body>
+    <div class="grid">
+        <div class="game-container">
+            <canvas id="board"></canvas>
+            <div id="game-over" class="game-over">ИГРА ЗАВЕРШЕНА</div>
+        </div>
+        <div class="right-column">
+            <div>
+                <h1>ТЕТРИС</h1>
+                <p>Счет: <span id="score">0</span></p>
+                <p>Линии: <span id="lines">0</span></p>
+                <p>Уровень: <span id="level">1</span></p>
+                <p>Рекорд: <span id="highscore">0</span></p>
+            </div>
+            <div class="buttons">
+                <button class="play-button" id="play-button">Играть</button>
+                <button class="pause-button" id="pause-button" disabled>Пауза</button>
+                <button class="settings-button" id="settings-button">⚙</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Модальное окно настроек -->
+    <div id="settings-modal" class="modal">
+        <div class="modal-content">
+            <h2>Настройки</h2>
+            <div class="settings-section">
+                <h3>Цветовая схема</h3>
+                <select id="color-scheme">
+                    <option value="classic">Классическая</option>
+                    <option value="pastel">Пастельная</option>
+                    <option value="neon">Неоновая</option>
+                </select>
+            </div>
+            <div class="settings-section">
+                <h3>Фон</h3>
+                <select id="background">
+                    <!-- Опции будут добавлены динамически -->
+                </select>
+            </div>
+            <div class="settings-section">
+                <h3>Цвет фона</h3>
+                <input type="color" id="background-color" value="#202028">
+            </div>
+            <button class="save-button">Сохранить</button>
+            <button class="close-button">✕</button>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { Game } from './pkg/tetris.js';
+
+        let game;
+        let animationId;
+
+        function update(time) {
+            if (game) {
+                try {
+                    game.update(time);
+                    game.draw();
+                    game.update_score();
+                    game.check_game_over();
+                    animationId = requestAnimationFrame(update);
+                } catch (e) {
+                    console.error("Error in update:", e);
+                }
+            }
+        }
+
+        async function run() {
+            try {
+                console.log("Initializing WebAssembly...");
+                await init();
+                console.log("WebAssembly initialized");
+
+                game = new Game();
+                console.log("Game created");
+                game.draw();
+
+                const playButton = document.getElementById('play-button');
+                const pauseButton = document.getElementById('pause-button');
+                const settingsButton = document.getElementById('settings-button');
+                const settingsModal = document.getElementById('settings-modal');
+                const backgroundSelect = document.getElementById('background');
+                const colorSchemeSelect = document.getElementById('color-scheme');
+                const backgroundColorInput = document.getElementById('background-color');
+
+                // Заполняем список фонов
+                const backgroundNames = game.get_background_names();
+                backgroundNames.forEach((name) => {
+                    const option = document.createElement('option');
+                    const path = game.get_background_path(name);
+                    if (path) {
+                        option.value = path;
+                        option.textContent = name;
+                        backgroundSelect.appendChild(option);
+                    }
+                });
+
+                // Загружаем сохраненные настройки
+                const storage = window.localStorage;
+                if (storage.getItem('colorScheme')) {
+                    colorSchemeSelect.value = storage.getItem('colorScheme');
+                }
+                if (storage.getItem('backgroundColor')) {
+                    backgroundColorInput.value = storage.getItem('backgroundColor');
+                }
+                if (storage.getItem('backgroundImage')) {
+                    backgroundSelect.value = storage.getItem('backgroundImage');
+                }
+
+                // Обработчики для окна настроек
+                settingsButton.addEventListener('click', () => {
+                    settingsModal.style.display = 'block';
+                });
+
+                document.querySelector('.close-button').addEventListener('click', () => {
+                    settingsModal.style.display = 'none';
+                });
+
+                document.querySelector('.save-button').addEventListener('click', () => {
+                    const colorScheme = document.getElementById('color-scheme').value;
+                    const backgroundColor = document.getElementById('background-color').value;
+                    const background = document.getElementById('background').value;
+
+                    try {
+                        game.set_color_scheme(colorScheme);
+                        game.set_background_color(backgroundColor);
+                        game.set_background(background);
+                    } catch (e) {
+                        console.error("Error saving settings:", e);
+                    }
+
+                    settingsModal.style.display = 'none';
+                });
+
+                playButton.addEventListener('click', () => {
+                    try {
+                        console.log("Play button clicked");
+                        game.play();
+                        pauseButton.disabled = false;
+                        animationId = requestAnimationFrame(update);
+                    } catch (e) {
+                        console.error("Error in play button handler:", e);
+                    }
+                });
+
+                pauseButton.addEventListener('click', () => {
+                    try {
+                        game.toggle_pause();
+                        pauseButton.textContent = game.is_paused() ? 'Продолжить' : 'Пауза';
+                    } catch (e) {
+                        console.error("Error in pause button handler:", e);
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    try {
+                        if (!game.is_game_over()) {
+                            game.handle_key(e.code);
+                        }
+                    } catch (e) {
+                        console.error("Error in keydown handler:", e);
+                    }
+                });
+
+            } catch (e) {
+                console.error("Error initializing game:", e);
+            }
+        }
+
+        run().catch(console.error);
+    </script>
+</body>
+</html> 
