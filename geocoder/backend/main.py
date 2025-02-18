@@ -1,74 +1,92 @@
-from aiohttp import web
-import aiohttp
-from aiohttp import ClientTimeout
-from aiohttp.web import middleware
+from aiohttp import web, WSMsgType
 import json
+import logging
+from typing import Optional
 
-routes = web.RouteTableDef()
+from external_services import get_coordinates, get_elevation, get_weather
+from settings import SERVER_HOST, SERVER_PORT
 
-@middleware
-async def cors_middleware(request, handler):
-    response = await handler(request)
-    response.headers['Access-Control-Allow-Origin'] = '*'
-    response.headers['Access-Control-Allow-Methods'] = 'GET, POST, OPTIONS'
-    response.headers['Access-Control-Allow-Headers'] = 'Content-Type'
-    return response
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
 
-@routes.get('/api/search')
-async def search_city(request):
-    city = request.query.get('city')
-    if not city:
-        return web.Response(
-            text=json.dumps({'error': 'City parameter is required'}),
-            status=400,
-            content_type='application/json'
-        )
+async def websocket_handler(request):
+    ws = web.WebSocketResponse()
+    await ws.prepare(request)
 
-    timeout = ClientTimeout(total=10)
-    async with aiohttp.ClientSession(timeout=timeout) as session:
-        try:
-            url = f'https://nominatim.openstreetmap.org/search'
-            params = {
-                'q': city,
-                'format': 'json',
-                'limit': 1
-            }
-            async with session.get(url, params=params) as response:
-                if response.status != 200:
-                    return web.Response(
-                        text=json.dumps({'error': 'Failed to fetch coordinates'}),
-                        status=500,
-                        content_type='application/json'
-                    )
+    async for msg in ws:
+        if msg.type == WSMsgType.TEXT:
+            logger.info(f'Received message: {msg.data}')
+            try:
+                data = json.loads(msg.data)
                 
-                data = await response.json()
-                if not data:
-                    return web.Response(
-                        text=json.dumps({'error': 'City not found'}),
-                        status=404,
-                        content_type='application/json'
-                    )
+                if data.get('type') == 'search':
+                    # Поиск города
+                    city = data.get('city')
+                    if not city:
+                        await ws.send_json({
+                            'type': 'error',
+                            'message': 'City parameter is required'
+                        })
+                        continue
 
-                result = {
-                    'coordinates': {
-                        'lat': float(data[0]['lat']),
-                        'lon': float(data[0]['lon'])
-                    },
-                    'city': city
-                }
-                return web.Response(
-                    text=json.dumps(result),
-                    content_type='application/json'
-                )
-        except Exception as e:
-            return web.Response(
-                text=json.dumps({'error': str(e)}),
-                status=500,
-                content_type='application/json'
-            )
+                    coordinates = await get_coordinates(city)
+                    if not coordinates:
+                        await ws.send_json({
+                            'type': 'error',
+                            'message': 'City not found'
+                        })
+                        continue
 
-app = web.Application(middlewares=[cors_middleware])
-app.add_routes(routes)
+                    await ws.send_json({
+                        'type': 'coordinates',
+                        'data': {
+                            'coordinates': coordinates,
+                            'city': city
+                        }
+                    })
+
+                elif data.get('type') == 'map_center':
+                    # Получение данных для центра карты
+                    lat = data.get('lat')
+                    lon = data.get('lon')
+                    if lat is None or lon is None:
+                        continue
+
+                    # Получаем высоту и погоду параллельно
+                    elevation = await get_elevation(lat, lon)
+                    weather = await get_weather(lat, lon)
+
+                    if elevation is not None:
+                        await ws.send_json({
+                            'type': 'elevation',
+                            'data': {'elevation': elevation}
+                        })
+
+                    if weather is not None:
+                        await ws.send_json({
+                            'type': 'weather',
+                            'data': weather
+                        })
+
+            except json.JSONDecodeError:
+                await ws.send_json({
+                    'type': 'error',
+                    'message': 'Invalid JSON'
+                })
+            except Exception as e:
+                logger.error(f"Error processing message: {str(e)}")
+                await ws.send_json({
+                    'type': 'error',
+                    'message': 'Internal server error'
+                })
+
+        elif msg.type == WSMsgType.ERROR:
+            logger.error(f'WebSocket connection closed with exception {ws.exception()}')
+
+    return ws
+
+app = web.Application(debug=True)
+app.router.add_get('/ws', websocket_handler)
 
 if __name__ == '__main__':
-    web.run_app(app, port=8080) 
+    web.run_app(app, host=SERVER_HOST, port=SERVER_PORT) 

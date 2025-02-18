@@ -1,32 +1,22 @@
-import React, { useState } from 'react';
-import { SearchResponse } from '../types/types';
+import React, { useState, FormEvent } from 'react';
 
 interface SearchFormProps {
-    onSearch: (coordinates: SearchResponse) => void;
-    onError: (error: string) => void;
+    onSearch: (city: string) => void;
 }
 
-const SearchForm: React.FC<SearchFormProps> = ({ onSearch, onError }) => {
+const SearchForm: React.FC<SearchFormProps> = ({ onSearch }) => {
     const [city, setCity] = useState('');
     const [loading, setLoading] = useState(false);
 
-    const handleSubmit = async (e: React.FormEvent) => {
+    const handleSubmit = async (e: FormEvent) => {
         e.preventDefault();
         if (!city.trim()) {
-            onError('Пожалуйста, введите название города');
             return;
         }
 
         setLoading(true);
         try {
-            const response = await fetch(`http://localhost:8080/api/search?city=${encodeURIComponent(city)}`);
-            if (!response.ok) {
-                throw new Error('Город не найден');
-            }
-            const data = await response.json();
-            onSearch(data);
-        } catch (error) {
-            onError(error instanceof Error ? error.message : 'Произошла ошибка');
+            onSearch(city);
         } finally {
             setLoading(false);
         }
