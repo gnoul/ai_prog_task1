@@ -7,14 +7,41 @@ services:
       dockerfile: Dockerfile
     ports:
       - "3000:3000"
-    environment:
-      - REACT_APP_API_URL=http://localhost:8080
     depends_on:
-      - backend
+      - web
 
-  backend:
+  web:
     build:
       context: ./backend
       dockerfile: Dockerfile
+      args:
+        SERVICE_TYPE: web
     ports:
-      - "8080:8080" 
+      - "8080:8080"
+    depends_on:
+      - redis
+      - queue
+    environment:
+      - REDIS_HOST=redis
+
+  queue:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      args:
+        SERVICE_TYPE: queue
+    depends_on:
+      - redis
+    environment:
+      - REDIS_HOST=redis
+
+  redis:
+    image: redis:alpine
+    ports:
+      - "6379:6379"
+
+  redisinsight:
+    image: redislabs/redisinsight:latest
+    ports:
+      - '8001:8001'
+      - '5540:5540'
