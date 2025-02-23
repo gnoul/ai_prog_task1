@@ -1,0 +1,90 @@
+.game-container {
+    display: flex;
+    justify-content: center;
+    padding: 20px;
+    background: var(--bs-dark);
+    border-radius: 8px;
+    position: relative;
+    /*background-size: cover;*/
+    /*background-position: center;*/
+    /*background-repeat: no-repeat;*/
+}
+
+#gameCanvas {
+    border: 2px solid var(--bs-primary);
+    background-color: rgba(33, 37, 41, 0.95);
+    background-size: cover;
+    background-position: center;
+    background-repeat: no-repeat;
+}
+
+.game-over {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    background: rgba(0, 0, 0, 0.8);
+    color: var(--bs-danger);
+    padding: 20px 40px;
+    border-radius: 8px;
+    font-size: 2rem;
+    font-weight: bold;
+    border: 2px solid var(--bs-danger);
+    display: none;
+}
+
+.info-panel {
+    background: var(--bs-dark);
+    padding: 20px;
+    border-radius: 8px;
+}
+
+.settings-btn {
+    width: 40px;
+    height: 40px;
+    padding: 0;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+
+.settings-btn i {
+    font-size: 1.2rem;
+}
+
+.next-piece-container {
+    text-align: center;
+    background: rgba(0, 0, 0, 0.3);
+    padding: 15px;
+    border-radius: 8px;
+}
+
+#nextPieceCanvas {
+    background-color: rgba(0, 0, 0, 0.8);
+    border: 1px solid var(--bs-border-color);
+    border-radius: 4px;
+}
+
+.form-select, .btn {
+    margin-bottom: 10px;
+}
+
+.modal-content {
+    background: var(--bs-dark);
+    border: 1px solid var(--bs-border-color);
+}
+
+.modal-header {
+    border-bottom-color: var(--bs-border-color);
+}
+
+@media (max-width: 768px) {
+    .game-container {
+        padding: 10px;
+    }
+
+    #gameCanvas {
+        width: 100%;
+        height: auto;
+    }
+}

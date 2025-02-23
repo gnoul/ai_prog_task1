@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Тетрис WASM</title>
+    <meta charset="UTF-8">
+    <link href="https://fonts.googleapis.com/css?family=Press+Start+2P" rel="stylesheet">
+    <style>
+        * {
+            font-family: 'Press Start 2P', cursive;
+        }
+
+        body {
+            background: #202028;
+            color: #fff;
+            margin: 0;
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            overflow: hidden;
+        }
+
+        .grid {
+            display: grid;
+            grid-template-columns: 480px 200px;
+            gap: 50px;
+            padding: 30px;
+            border-radius: 10px;
+            margin: 0 auto;
+            width: fit-content;
+            background: rgba(0, 0, 0, 0.7);
+        }
+
+        .game-container {
+            position: relative;
+        }
+
+        .right-column {
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        canvas {
+            border: 2px solid #fff;
+        }
+
+        .buttons {
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+
+        .play-button, .pause-button {
+            background-color: #4caf50;
+            font-size: 16px;
+            padding: 15px 30px;
+            cursor: pointer;
+            color: white;
+            border: none;
+        }
+
+        .pause-button {
+            background-color: #f0a000;
+        }
+
+        .play-button:hover {
+            background-color: #45a049;
+        }
+
+        .pause-button:hover {
+            background-color: #d89000;
+        }
+
+        .pause-button:disabled {
+            background-color: #666;
+            cursor: not-allowed;
+        }
+
+        .game-over {
+            display: none;
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            background: rgba(0, 0, 0, 0.8);
+            color: white;
+            padding: 20px 40px;
+            border-radius: 10px;
+            font-size: 24px;
+            text-align: center;
+            z-index: 100;
+        }
+    </style>
+</head>
+<body>
+    <div class="grid">
+        <div class="game-container">
+            <canvas id="board"></canvas>
+            <div id="game-over" class="game-over">ИГРА ЗАВЕРШЕНА</div>
+        </div>
+        <div class="right-column">
+            <div>
+                <h1>ТЕТРИС</h1>
+                <p>Счет: <span id="score">0</span></p>
+                <p>Линии: <span id="lines">0</span></p>
+                <p>Уровень: <span id="level">1</span></p>
+                <p>Рекорд: <span id="highscore">0</span></p>
+            </div>
+            <div class="buttons">
+                <button class="play-button" id="play-button">Играть</button>
+                <button class="pause-button" id="pause-button" disabled>Пауза</button>
+            </div>
+        </div>
+    </div>
+
+    <script type="module">
+        import init, { Game } from './pkg/tetris.js';
+
+        let game;
+        let animationId;
+
+        function update(time) {
+            if (game) {
+                try {
+                    game.update(time);
+                    game.draw();
+                    animationId = requestAnimationFrame(update);
+                } catch (e) {
+                    console.error("Error in update:", e);
+                }
+            }
+        }
+
+        async function run() {
+            try {
+                console.log("Initializing WebAssembly...");
+                await init();
+                console.log("WebAssembly initialized");
+
+                game = new Game();
+                console.log("Game created");
+                game.draw();
+
+                const playButton = document.getElementById('play-button');
+                const pauseButton = document.getElementById('pause-button');
+
+                playButton.addEventListener('click', () => {
+                    try {
+                        console.log("Play button clicked");
+                        game.play();
+                        pauseButton.disabled = false;
+                        animationId = requestAnimationFrame(update);
+                    } catch (e) {
+                        console.error("Error in play button handler:", e);
+                    }
+                });
+
+                pauseButton.addEventListener('click', () => {
+                    try {
+                        game.toggle_pause();
+                        pauseButton.textContent = game.is_paused() ? 'Продолжить' : 'Пауза';
+                    } catch (e) {
+                        console.error("Error in pause button handler:", e);
+                    }
+                });
+
+                document.addEventListener('keydown', (e) => {
+                    try {
+                        if (!game.is_game_over()) {
+                            game.handle_key(e.code);
+                        }
+                    } catch (e) {
+                        console.error("Error in keydown handler:", e);
+                    }
+                });
+
+            } catch (e) {
+                console.error("Error initializing game:", e);
+            }
+        }
+
+        run().catch(console.error);
+    </script>
+</body>
+</html> 
